@@ -8,6 +8,7 @@ The content of file `/etc/systemd/system/multi-user.target.wants/beans.service`:
 
 ```raku
 #!raku
+
 task-run "my service", "systemd", %(
     after-service => [
         "nginx",
@@ -29,12 +30,14 @@ task-run "my service", "systemd", %(
 
 # Flow
 
-- Systemd instead of parsing /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd configuration file, spawns a Raku oneliner: `raku -MSparrow6::DSL -e /etc/systemd/system/multi-user.target.wants/beans.service`
+- Systemd instead (*) of parsing /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd configuration file, spawns a Raku oneliner: `raku -MSparrow6::DSL -e /etc/systemd/system/multi-user.target.wants/beans.service`
 
 - As a result of the Raku onliner execution `/tmp/beans.service.out` file has been created with **native** systemd configuration data
 
 - Systemd parses it as a normal systemd unit file and continues its work
 
+
+\* the disicion whether to parse /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd unit file or spawnn intermediate Raku online could be taken by analyzing the first line of could, so there is a `#!raku` shebang this is a Raku/Sparrow file, not native unit file.
 
 # Explanation
 
@@ -48,9 +51,8 @@ Sparrow provides a systemd sparrow plugin which gets run as function inside Raku
 Because it's pure Raku, this sky is a limit, so for example:
 
 ```raku
-!raku
-
 #!raku
+
 task-run "my service", "systemd", %(
     after-service => [
         "nginx",
