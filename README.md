@@ -87,14 +87,14 @@ We could think of creation of "precooked" systemd units for some well known serv
 
 ```raku
 #!raku
-task-run "my service", "systemd-nginx";
+task-run "nginx service", "systemd-nginx";
 ```
 
 `/etc/systemd/system/multi-user.target.wants/mariadb.service`:
 
 ```raku
 #!raku
-task-run "my service", "systemd-mariadb";
+task-run "mariadb service", "systemd-mariadb";
 ```
 
-Etc
+Etc ...
