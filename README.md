@@ -48,6 +48,8 @@ Sparrow provides a systemd sparrow plugin which gets run as function inside Raku
 
 # Advantages
 
+## Flexibility 
+
 Because it's pure Raku, this sky is a limit, so for example:
 
 ```raku
@@ -71,3 +73,28 @@ task-run "my service", "systemd", %(
     reload => "kill -s HUP /var/run/beans.pid",
 );
 ```
+
+## Reusability
+
+Because Sparrow comes with a concept of [plugins](https://sparrowhub.io) - small reusable tasks written on Raku/Bash/Python/Perl
+
+We could think of creation of "precooked" systemd units for some well known services:
+
+
+### Nginx
+
+`/etc/systemd/system/multi-user.target.wants/nginx.service`:
+
+```raku
+#!raku
+task-run "my service", "systemd-nginx";
+```
+
+`/etc/systemd/system/multi-user.target.wants/mariadb.service`:
+
+```raku
+#!raku
+task-run "my service", "systemd-mariadb";
+```
+
+Etc
