@@ -31,23 +31,23 @@ task-run "my service", "systemd", %(
 
 # Flow
 
-- Systemd instead of parsing /etc/systemd/system/multi-user.target.wants/beans.service as regular systemd configuration file, luanches Raku oneliner: `raku -MSparrow6::DSL /etc/systemd/system/multi-user.target.wants/beans.service`
+- Systemd instead of parsing /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd configuration file, spawns a Raku oneliner: `raku -MSparrow6::DSL /etc/systemd/system/multi-user.target.wants/beans.service`
 
-- As a result of Raku onliner  execution `/tmp/beans.service.out`
+- As a result of Raku onliner execution `/tmp/beans.service.out` file created with native systemd configuration data
 
-- Systemd parses it as a normal systemd unit file and continues it work
+- Systemd parses it as a normal systemd unit file and continues its work
 
 
 # Explanation
 
 ## Systemd sparrow plugin
 
-Sparrow provides a systemd sparrow plugin which runs though command `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in natived systemd format suitable for systemd parsing. This interaction is hidden from end user who writes unitd code in oure Raku/Sparrow DSL
+Sparrow provides a systemd sparrow plugin which gets though command `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in natived systemd format suitable for systemd parsing. This interaction is hidden from end user who writes unitd code in oure Raku/Sparrow DSL
 
 
 # Advantages
 
-Because it's pure Raku, this sky is limit, so for example:
+Because it's pure Raku, this sky is a limit, so for example:
 
 ```raku
 !raku
