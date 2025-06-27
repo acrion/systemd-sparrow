@@ -4,9 +4,7 @@ Systemd with sparrow concept
 
 # Code example
 
-
-
-`/etc/systemd/system/multi-user.target.wants/beans.service`
+The content of file `/etc/systemd/system/multi-user.target.wants/beans.service`:
 
 ```raku
 #!raku
@@ -31,9 +29,9 @@ task-run "my service", "systemd", %(
 
 # Flow
 
-- Systemd instead of parsing /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd configuration file, spawns a Raku oneliner: `raku -MSparrow6::DSL /etc/systemd/system/multi-user.target.wants/beans.service`
+- Systemd instead of parsing /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd configuration file, spawns a Raku oneliner: `raku -MSparrow6::DSL -e /etc/systemd/system/multi-user.target.wants/beans.service`
 
-- As a result of Raku onliner execution `/tmp/beans.service.out` file created with native systemd configuration data
+- As a result of the Raku onliner execution `/tmp/beans.service.out` file has been created with **native** systemd configuration data
 
 - Systemd parses it as a normal systemd unit file and continues its work
 
@@ -42,7 +40,7 @@ task-run "my service", "systemd", %(
 
 ## Systemd sparrow plugin
 
-Sparrow provides a systemd sparrow plugin which gets though command `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in natived systemd format suitable for systemd parsing. This interaction is hidden from end user who writes unitd code in oure Raku/Sparrow DSL
+Sparrow provides a systemd sparrow plugin which gets run as function inside Rakud code - `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in natived systemd format suitable for systemd parsing. This interaction is hidden from end user who writes unitd code in oure Raku/Sparrow DSL
 
 
 # Advantages
