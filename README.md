@@ -28,3 +28,46 @@ task-run "my service", "systemd", %(
     reload => "kill -s HUP /var/run/beans.pid",
 );
 ```
+
+# Flow
+
+- Systemd instead of parsing /etc/systemd/system/multi-user.target.wants/beans.service as regular systemd configuration file, luanches Raku oneliner: `raku -MSparrow6::DSL /etc/systemd/system/multi-user.target.wants/beans.service`
+
+- As a result of Raku onliner  execution `/tmp/beans.service.out`
+
+- Systemd parses it as a normal systemd unit file and continues it work
+
+
+# Explanation
+
+## Systemd sparrow plugin
+
+Sparrow provides a systemd sparrow plugin which runs though command `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in natived systemd format suitable for systemd parsing. This interaction is hidden from end user who writes unitd code in oure Raku/Sparrow DSL
+
+
+# Advantages
+
+Because it's pure Raku, this sky is limit, so for example:
+
+```raku
+!raku
+
+#!raku
+task-run "my service", "systemd", %(
+    after-service => [
+        "nginx",
+        "mysql",
+    ],
+    after-target => [
+        "syslog",
+        "network"
+    ],
+    env => %(
+        MemoryMax => ($*KERNEL.memory * 0.25).Int,
+    ),
+    description => "Cool Beans",
+    start => "/usr/local/bin/beans start -f",
+    stop => "/usr/local/bin/beans stop",
+    reload => "kill -s HUP /var/run/beans.pid",
+);
+```
