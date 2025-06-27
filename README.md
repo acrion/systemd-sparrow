@@ -91,7 +91,7 @@ We could think of creation of "precooked" systemd units for some well known serv
 task-run "nginx service", "systemd-nginx";
 ```
 
-## Mariadb
+### Mariadb
 
 `/etc/systemd/system/multi-user.target.wants/mariadb.service`:
 
