@@ -85,12 +85,13 @@ We could think of creation of "precooked" systemd units for some well known serv
 
 `/etc/systemd/system/multi-user.target.wants/nginx.service`:
 
-## Mariadb
 
 ```raku
 #!raku
 task-run "nginx service", "systemd-nginx";
 ```
+
+## Mariadb
 
 `/etc/systemd/system/multi-user.target.wants/mariadb.service`:
 
