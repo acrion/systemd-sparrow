@@ -12,7 +12,7 @@ This project explores integrating [Sparrow6](https://github.com/melezhik/Sparrow
 
 ## Two Implementation Approaches
 
-### 1. Translation Mode (Proposed by [@melezhik](https://github.com/melezhik/))
+### 1. Translation Mode (Proposed by [@melezhik](https://github.com/melezhik))
 
 Alexey's original concept: Use Raku/Sparrow6 to generate native systemd unit files.
 
@@ -513,7 +513,7 @@ task-run "microservice", "systemd-with-health", %(
 
 ## Contributing
 
-We're looking for contributors interested in:
+This is a collaborative project between [@melezhik](https://github.com/melezhik) and [@acrion](https://github.com/acrion). We're looking for contributors interested in:
 - Creating Sparrow6 plugins for common services
 - Implementing the C++ integration layer
 - Testing on different Linux distributions
