@@ -37,7 +37,7 @@ task-run "my service", "systemd", %(
 - Systemd parses it as a normal systemd unit file and continues its work
 
 
-\* adicision whether to parse /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd unit file or to spawn intermediate Raku onliner could be taken by analyzing the first line of a code, so if there is a `#!raku` shebang this is a Raku/Sparrow file, not a native unit file.
+\* dicision whether to parse /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd unit file or to spawn intermediate Raku onliner could be taken by analyzing the first line of a code, so if there is a `#!raku` shebang this is a Raku/Sparrow file, not a native unit file.
 
 # Explanation
 
