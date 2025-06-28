@@ -43,7 +43,7 @@ task-run "my service", "systemd", %(
 
 ## Systemd sparrow plugin
 
-Sparrow provides a systemd sparrow plugin which gets run as function inside Rakud code - `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in natived systemd format suitable for systemd parsing. This interaction is hidden from end user who writes unitd code in oure Raku/Sparrow DSL
+Sparrow provides a systemd sparrow plugin which gets run as function inside Rakud code - `task-run "bla bla bla", "systemd", %PARAMS`, this plugin generates desired systemd unit code in native systemd format suitable for systemd parsing. This interaction is hidden from end user who writes systemd unit code in pure Raku/Sparrow DSL
 
 
 # Advantages
