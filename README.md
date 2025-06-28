@@ -9,7 +9,7 @@ The content of file `/etc/systemd/system/multi-user.target.wants/beans.service`:
 ```raku
 #!raku
 
-task-run "my service", "systemd", %(
+task-run "beans", "systemd", %(
     after-service => [
         "nginx",
         "mysql",
@@ -32,7 +32,7 @@ task-run "my service", "systemd", %(
 
 - Systemd instead (*) of parsing /etc/systemd/system/multi-user.target.wants/beans.service as a regular systemd configuration file, spawns a Raku oneliner: `raku -MSparrow6::DSL -e /etc/systemd/system/multi-user.target.wants/beans.service`
 
-- As a result of the Raku onliner execution `/tmp/beans.service.out` file has been created with **native** systemd configuration data
+- As a result of the Raku onliner execution `/tmp/beans.unit.out` file has been created with **native** systemd configuration data
 
 - Systemd parses it as a normal systemd unit file and continues its work
 
