@@ -10,6 +10,32 @@ This project explores integrating [Sparrow6](https://github.com/melezhik/Sparrow
 - Complex dependency management
 - Missing abstractions for common patterns
 
+## Why Systemd Needs Sparrow6: Real-World Pain Points
+
+While systemd revolutionized Linux service management, its static configuration model creates significant challenges for modern, dynamic infrastructure. Developers routinely work around these limitations with wrapper scripts, configuration management tools, or by accepting less robust services. Here's what we're addressing:
+
+### Current systemd pain points from a developer perspective:
+
+- Static configuration hell - You can't adjust memory limits based on available RAM, can't change CPU quotas based on system load. While systemd-run offers some runtime flexibility, unit files themselves remain static. Developers end up writing wrapper scripts for dynamic resource allocation.
+
+- Template limitations - Systemd's template system (@) only supports basic substitutions (%i, %n, etc.). No conditional logic, no loops, no complex transformations. Need different configs for dev/staging/prod? You're maintaining multiple unit files or complex EnvironmentFile hierarchies.
+
+- Limited conditional execution - While systemd offers ConditionPathExists and similar directives, there's no true branching logic. Want complex conditions like "start only if config valid AND database reachable"? You need ExecStartPre script chains.
+
+- Basic health monitoring - Systemd handles process state and basic sd_notify() integration, but complex health checks (HTTP endpoints, database connectivity, multi-step validations) require external tooling. Alternative init systems like OpenRC can integrate custom health check scripts more naturally.
+
+- Environment-specific configuration - Drop-in directories and EnvironmentFile provide some flexibility, but there's no elegant way to have one unit file that adapts to dev/staging/prod environments without external configuration management.
+
+- Restart strategy limitations - While systemd offers RestartSec and StartLimitBurst, there's no exponential backoff, no different actions for different failure types (e.g., "restart on SIGTERM, alert on SIGSEGV"). Some container orchestrators handle this better.
+
+- Dynamic scaling challenges - Managing services that need to scale based on load requires complex template instantiation with external orchestration. No native way to say "run 2-10 instances based on CPU load."
+
+- External configuration integration - Unit files can't fetch configuration from Consul, etcd, or cloud metadata services. This forces wrapper scripts or configuration management tools into the deployment pipeline.
+
+- Static dependency declaration - Dependencies must be explicitly declared. Can't express "depend on any available database service" or "start after any network storage is mounted." Runit and s6 handle dependency resolution more dynamically.
+
+These limitations force developers into workarounds: wrapper scripts, configuration management tools, or simply accepting less robust services. Our Sparrow6 integration provides a real programming language where systemd expects static configuration.
+
 ## Two Implementation Approaches
 
 ### 1. Translation Mode (Proposed by [@melezhik](https://github.com/melezhik/))
