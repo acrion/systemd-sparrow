@@ -45,7 +45,7 @@ task-run "beans", "systemd", %(
 
 ### 2. Runtime Integration Mode (Extended vision)
 
-Going beyond static generation to true runtime dynamism.
+Going beyond static generation to true runtime dynamism with asynchronous processing.
 
 ```raku
 #!raku
@@ -101,6 +101,7 @@ task-run "my-webapp", "systemd-dynamic", %(
 - ✅ True dynamic behavior during service lifecycle
 - ✅ Can adapt to system load, hardware changes, etc.
 - ✅ Live system introspection and adaptation
+- ✅ Non-blocking asynchronous monitoring
 - ❌ Requires deeper systemd modifications
 - ❌ Much more complex C++ integration
 
@@ -115,7 +116,7 @@ MemoryMax=2048K  # Static value calculated at unit creation
 
 **Runtime integration could evaluate dynamically:**
 ```raku
-# Evaluated every time systemd checks resource limits
+# Evaluated periodically in background threads
 MemoryMax={ system-memory() < 4.GB ?? "512M" !! "2G" }
 CPUQuota={ current-load() > 80 ?? "50%" !! "200%" }
 ```
@@ -205,6 +206,12 @@ task-run "my-webapp", "systemd-dynamic", %(
             
             return @deps;
         }
+    ),
+    
+    # Asynchronous monitoring configuration
+    monitoring => %(
+        interval => 60,  # Check every 60 seconds
+        priority => "background"  # Don't block systemd operations
     )
 );
 ```
@@ -245,6 +252,9 @@ if os() ~~ /centos/ {
 }
 ```
 
+### 5. Non-Blocking Asynchronous Operations
+All Sparrow6 evaluations run in background threads, ensuring systemd's core operations continue at full speed.
+
 ## Implementation Roadmap
 
 ### Phase 1: Translation Mode
@@ -262,11 +272,13 @@ if os() ~~ /centos/ {
 - [ ] Runtime property evaluation hooks
 - [ ] Dynamic health check integration
 - [ ] Resource limit adaptation
+- [ ] Integrate Cbeam for asynchronous monitoring
 
 ### Phase 4: Full Runtime Integration
 - [ ] Complete Sparrow6 runtime bridge
 - [ ] Event-driven task orchestration
 - [ ] Live system adaptation
+- [ ] Full asynchronous architecture with Cbeam
 
 ## Technical Design
 
@@ -435,20 +447,87 @@ private:
 };
 ```
 
+#### 4. Asynchronous Resource Monitoring with Cbeam
+
+To enable true dynamic resource management without blocking systemd's core operations, we integrate [Cbeam's message_manager](https://cbeam.org/message_manager) for asynchronous processing:
+
+```cpp
+class Sparrow6AsyncMonitor {
+private:
+    cbeam::concurrency::message_manager<ResourceCheckRequest> monitor;
+    Sparrow6Extension sparrow;
+    
+    static constexpr size_t RESOURCE_CHECK_ID = 1;
+    static constexpr size_t TIMER_ID = 2;
+    
+public:
+    void initialize() {
+        // Resource check handler runs in background thread
+        monitor.add_handler(RESOURCE_CHECK_ID, [this](ResourceCheckRequest req) {
+            // Execute Sparrow6 task asynchronously
+            auto result = sparrow.run_task("resource-monitor", req.plugin, req.params);
+            
+            // Apply changes through systemd API if needed
+            if (result.requires_update && meets_change_threshold(req, result)) {
+                update_service_properties(req.service_id, result.properties);
+            }
+        }, nullptr, nullptr, "sparrow6_resource_check");
+        
+        // Timer handler sends periodic check requests
+        monitor.add_handler(TIMER_ID, [this](TimerTick tick) {
+            for (auto& [service_id, config] : monitored_services) {
+                if (should_check(service_id, tick)) {
+                    monitor.send_message(RESOURCE_CHECK_ID, 
+                        ResourceCheckRequest{service_id, config});
+                }
+            }
+        }, nullptr, nullptr, "sparrow6_timer");
+    }
+    
+    void register_service(const std::string& service_id, 
+                         const MonitoringConfig& config) {
+        monitored_services[service_id] = config;
+    }
+    
+private:
+    std::map<std::string, MonitoringConfig> monitored_services;
+    
+    bool meets_change_threshold(const ResourceCheckRequest& req,
+                               const TaskResult& result) {
+        // Implement hysteresis to prevent oscillation
+        // Compare with configured thresholds
+        return true; // simplified
+    }
+};
+```
+
+This asynchronous architecture provides:
+- **Non-blocking Operation**: All Sparrow6 evaluations happen in background threads
+- **Configurable Check Intervals**: Services can specify their monitoring frequency
+- **Multi-core Utilization**: Checks distribute across available CPU cores
+- **Zero systemd Latency**: Main systemd operations continue unimpeded
+
 ## Why This Would Be Revolutionary
 
 This approach would solve systemd's biggest pain points:
-- **Dynamic adaptation** instead of static configs
+- **Dynamic adaptation** instead of static configs - Resources adjust to runtime conditions
 - **Reusable components** through Sparrow6 plugins
 - **Testing built-in** via Sparrow6's test framework
 - **Cross-distro compatibility** through Sparrow6's abstractions
 - **Gradual adoption** - start with translation, evolve to runtime
+- **True asynchronous monitoring** - System conditions evaluated continuously without blocking
 
 The Sparrow6 ecosystem would provide immediate value through:
 - Pre-built service definitions on SparrowHub
 - Community-contributed health checks and monitors
 - Battle-tested dependency management patterns
 - Integration with existing Sparrow6 configuration management
+
+The integration of Cbeam enables:
+- **Advanced monitoring capabilities**: Pattern matching in logs, network condition monitoring, external API integration
+- **Predictive scaling**: Use historical data to anticipate resource needs
+- **Complex decision logic**: Implement sophisticated algorithms without performance penalties
+- **Reliable change management**: Hysteresis and thresholds prevent service instability
 
 ## Examples
 
@@ -508,6 +587,91 @@ task-run "microservice", "systemd-with-health", %(
             );
         }
     ),
+);
+```
+
+### Service with Dynamic Memory Management
+```raku
+#!raku
+task-run "webapp", "systemd-dynamic", %(
+    description => "Web Application with Dynamic Resources",
+    exec-start => "/usr/bin/webapp",
+    
+    # Initial static configuration
+    memory-max => "2G",
+    cpu-quota => "100%",
+    
+    # Asynchronous monitoring configuration
+    monitoring => %(
+        interval => 60,  # Check every 60 seconds
+        
+        resource-check => sub {
+            my $available = get-available-memory();
+            my $load = get-system-load();
+            my $connections = get-active-connections();
+            
+            # Complex logic without blocking systemd
+            my $optimal-memory = do {
+                when $available < 2.GB { "512M" }
+                when $available < 4.GB { "1G" }
+                when $connections > 1000 { "4G" }
+                default { "2G" }
+            };
+            
+            return %(
+                memory-max => $optimal-memory,
+                cpu-quota => $load > 80 ?? "50%" !! "200%",
+                io-weight => $connections > 500 ?? 100 !! 1000
+            );
+        },
+        
+        # Hysteresis to prevent oscillation
+        change-threshold => %(
+            memory-max => "100M",  # Only update if change > 100M
+            cpu-quota => "20%"     # Only update if change > 20%
+        )
+    )
+);
+```
+
+### Service with Pattern-Based Monitoring
+```raku
+#!raku
+task-run "security-service", "systemd-pattern-monitor", %(
+    exec-start => "/usr/bin/security-app",
+    
+    monitoring => %(
+        interval => 30,
+        
+        # Monitor logs for security patterns
+        pattern-check => sub {
+            my $log-content = slurp("/var/log/security-app/access.log");
+            
+            # Use Raku's powerful regex engine
+            my $suspicious = $log-content ~~ m:g/
+                '401' .* 'admin' |
+                'DROP' .* 'TABLE' |
+                '../' ** 3..*
+            /;
+            
+            if $suspicious.elems > 10 {
+                task-run "alert", "security-notification", %(
+                    severity => "high",
+                    matches => $suspicious.elems
+                );
+                
+                # Activate defensive mode
+                return %(
+                    environment => %(
+                        SECURITY_MODE => "restrictive",
+                        RATE_LIMIT => "aggressive"
+                    )
+                );
+            }
+            
+            return %();  # No changes needed
+        }
+    )
 );
 ```
 
