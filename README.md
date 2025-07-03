@@ -242,6 +242,36 @@ This approach leverages Sparrow6's strengths:
 - **Cross-platform** abstractions (os() detection)
 - **Built-in testing** through Sparrow6's test framework
 
+## Design
+
+```mermaid
+graph TD
+    A["cron loop: evaluate resources state<br/>Raku / Sparrow"] 
+    B["systemd"]
+    C["service"]
+    D["service"] 
+    E["service"]
+    F["queue"]
+    G["kernel loop:<br/>PSI / Memory<br/>Kernel"]
+    H["cbeam manager"]
+    I["service"]
+    J["resource"]
+    K["health check"]
+    L["Raku / Sparrow"]
+    
+    A -->|call| B
+    A -->|check| I
+    A -->|check| J  
+    A -->|check| K
+    B -->|converge| C
+    B -->|converge| D
+    B -->|converge| E
+    H -->|read| F
+    G -->|write| F
+    H -->|"run (event, event, event)"| L
+    L -->|call| B
+```
+
 ## Key Benefits
 
 ### 1. Dynamic Configuration
