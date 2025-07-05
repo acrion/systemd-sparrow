@@ -242,6 +242,65 @@ This approach leverages Sparrow6's strengths:
 - **Cross-platform** abstractions (os() detection)
 - **Built-in testing** through Sparrow6's test framework
 
+## Design
+
+```mermaid
+graph TD
+    A["systemd process"]
+    B["Cbeam message_manager<br/>(thread pool)"]
+    C["Timer Handler<br/>(Cbeam thread)"]
+    D["Kernel Event Handler<br/>(Cbeam thread)"]
+    E["Sparrow6 Executor<br/>(Cbeam thread)"]
+    F["Result Processor<br/>(Cbeam thread)"]
+    G["Linux Kernel"]
+    H["PSI/cgroups events"]
+    I["Service A"]
+    J["Service B"]
+    K["Service C"]
+    L["Sparrow6 Runtime<br/>(Raku)"]
+    M["Resource Monitor Task"]
+    N["Health Check Task"]
+    O["Pattern Check Task"]
+    P["/proc, /sys interfaces"]
+    
+    subgraph "systemd process space"
+        A --> B
+        B --> C
+        B --> D
+        B --> E
+        B --> F
+    end
+    
+    subgraph "Sparrow6 Tasks"
+        E -->|execute| L
+        L --> M
+        L --> N
+        L --> O
+    end
+    
+    %% Monitoring triggers
+    C -->|"periodic tick<br/>(message)"| E
+    D -->|"kernel event<br/>(message)"| E
+    
+    %% Kernel interactions
+    G --> H
+    H -->|"epoll/eventfd<br/>(when threshold exceeded)"| D
+    G --> P
+    M -->|"read metrics"| P
+    N -->|"check endpoints"| I
+    O -->|"read logs"| I
+    
+    %% Results flow
+    L -->|"task results"| E
+    E -->|"send results<br/>(message)"| F
+    F -->|"update resources<br/>(systemctl API)"| A
+    
+    %% Service management
+    A -->|manage| I
+    A -->|manage| J
+    A -->|manage| K
+```
+
 ## Key Benefits
 
 ### 1. Dynamic Configuration
