@@ -246,30 +246,51 @@ This approach leverages Sparrow6's strengths:
 
 ```mermaid
 graph TD
-    A["cron loop: evaluate resources state<br/>Raku / Sparrow"] 
-    B["systemd"]
-    C["service"]
-    D["service"] 
-    E["service"]
-    F["queue"]
-    G["kernel loop:<br/>PSI / Memory<br/>Kernel"]
-    H["cbeam manager"]
-    I["service"]
-    J["resource"]
-    K["health check"]
-    L["Raku / Sparrow"]
+    A["systemd process"]
+    B["Cbeam message_manager<br/>(thread pool)"]
+    C["Timer Handler<br/>(Cbeam thread)"]
+    D["Kernel Event Handler<br/>(Cbeam thread)"]
+    E["Sparrow6 Executor<br/>(Cbeam thread)"]
+    F["Result Processor<br/>(Cbeam thread)"]
+    G["Linux Kernel"]
+    H["PSI/cgroups events"]
+    I["Service A"]
+    J["Service B"]
+    K["Service C"]
+    L["Sparrow6 Runtime<br/>(Raku)"]
+    M["Resource Monitor Task"]
+    N["Health Check Task"]
+    O["Pattern Check Task"]
     
-    A -->|call| B
-    A -->|check| I
-    A -->|check| J  
-    A -->|check| K
-    B -->|converge| C
-    B -->|converge| D
-    B -->|converge| E
-    H -->|read| F
-    G -->|write| F
-    H -->|"run (event, event, event)"| L
-    L -->|call| B
+    subgraph "systemd process space"
+        A --> B
+        B --> C
+        B --> D
+        B --> E
+        B --> F
+    end
+    
+    C -->|periodic tick| E
+    D -->|kernel event| E
+    
+    subgraph "Sparrow6 Tasks"
+        E -->|execute| L
+        L --> M
+        L --> N
+        L --> O
+    end
+    
+    G --> H
+    H -->|epoll/eventfd| D
+    
+    F -->|update resources| A
+    A -->|manage| I
+    A -->|manage| J
+    A -->|manage| K
+    
+    M -->|check memory/cpu| G
+    N -->|check endpoints| I
+    O -->|check logs| I
 ```
 
 ## Key Benefits
