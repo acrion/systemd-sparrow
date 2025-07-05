@@ -261,6 +261,7 @@ graph TD
     M["Resource Monitor Task"]
     N["Health Check Task"]
     O["Pattern Check Task"]
+    P["/proc, /sys interfaces"]
     
     subgraph "systemd process space"
         A --> B
@@ -270,9 +271,6 @@ graph TD
         B --> F
     end
     
-    C -->|periodic tick| E
-    D -->|kernel event| E
-    
     subgraph "Sparrow6 Tasks"
         E -->|execute| L
         L --> M
@@ -280,17 +278,27 @@ graph TD
         L --> O
     end
     
-    G --> H
-    H -->|epoll/eventfd| D
+    %% Monitoring triggers
+    C -->|"periodic tick<br/>(message)"| E
+    D -->|"kernel event<br/>(message)"| E
     
-    F -->|update resources| A
+    %% Kernel interactions
+    G --> H
+    H -->|"epoll/eventfd<br/>(when threshold exceeded)"| D
+    G --> P
+    M -->|"read metrics"| P
+    N -->|"check endpoints"| I
+    O -->|"read logs"| I
+    
+    %% Results flow
+    L -->|"task results"| E
+    E -->|"send results<br/>(message)"| F
+    F -->|"update resources<br/>(systemctl API)"| A
+    
+    %% Service management
     A -->|manage| I
     A -->|manage| J
     A -->|manage| K
-    
-    M -->|check memory/cpu| G
-    N -->|check endpoints| I
-    O -->|check logs| I
 ```
 
 ## Key Benefits
