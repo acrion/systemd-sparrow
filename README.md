@@ -253,7 +253,7 @@ if os() ~~ /centos/ {
 ```
 
 ### 5. Non-Blocking Asynchronous Operations
-All Sparrow6 evaluations run in background threads, ensuring systemd's core operations continue at full speed.
+All Sparrow6 evaluations run in background threads managed by [Cbeam's message_manager](https://cbeam.org/message_manager), ensuring systemd's core operations continue at full speed. No external tools like cron are needed - threading is handled entirely within the systemd process. See the [Asynchronous Resource Monitoring](#asynchronous-resource-monitoring-with-cbeam) section for implementation details.
 
 ## Implementation Roadmap
 
